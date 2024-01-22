@@ -8,6 +8,7 @@ class MenuCRUD:
 
     @classmethod
     async def get_menus_list(cls):
+        """Получение всех меню"""
         async with async_session_maker() as session:
             query = select(Menu)
             menus = await session.execute(query)
@@ -15,6 +16,7 @@ class MenuCRUD:
 
     @classmethod
     async def get_menu(cls, menu_id):
+        """Получение меню по id с подсчётом количества подменю и блюд"""
         async with async_session_maker() as session:
             query = select(Menu).filter_by(id=menu_id)
             result = await session.execute(query)
@@ -36,6 +38,7 @@ class MenuCRUD:
 
     @classmethod
     async def create_menu(cls, title, description):
+        """Создание меню"""
         async with async_session_maker() as session:
             menu = Menu(title=title, description=description)
             session.add(menu)
@@ -45,6 +48,7 @@ class MenuCRUD:
 
     @classmethod
     async def update_menu(cls, menu_id, new_title, new_description):
+        """Обновление меню"""
         async with async_session_maker() as session:
             query = select(Menu).filter_by(id=menu_id)
             result = await session.execute(query)
@@ -56,6 +60,7 @@ class MenuCRUD:
 
     @classmethod
     async def delete_menu(cls, menu_id):
+        """Удаление меню"""
         async with async_session_maker() as session:
             menu = await session.get(Menu, menu_id)
             await session.delete(menu)

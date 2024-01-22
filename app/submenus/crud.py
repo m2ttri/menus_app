@@ -8,6 +8,7 @@ class SubMenuCRUD:
 
     @classmethod
     async def get_submenus(cls, menu_id):
+        """Получение всех подменю"""
         async with async_session_maker() as session:
             query = select(SubMenu).join(Menu, Menu.id == SubMenu.menu_id).where(Menu.id == menu_id)
             result = await session.execute(query)
@@ -15,6 +16,7 @@ class SubMenuCRUD:
 
     @classmethod
     async def add_submenu(cls, menu_id, title, description):
+        """Создание подменю"""
         async with async_session_maker() as session:
             submenu = SubMenu(menu_id=menu_id, title=title, description=description)
             session.add(submenu)
@@ -24,6 +26,7 @@ class SubMenuCRUD:
 
     @classmethod
     async def get_submenu(cls, menu_id, submenu_id):
+        """Получение подменю по id с подсчётом количества блюд"""
         async with async_session_maker() as session:
             query = select(SubMenu).where(SubMenu.menu_id == menu_id, SubMenu.id == submenu_id)
             result = await session.execute(query)
@@ -42,6 +45,7 @@ class SubMenuCRUD:
 
     @classmethod
     async def update_submenu(cls, menu_id, submenu_id, new_title, new_description):
+        """Обновить подменю"""
         async with async_session_maker() as session:
             query = select(SubMenu).where(SubMenu.menu_id == menu_id, SubMenu.id == submenu_id)
             result = await session.execute(query)
@@ -55,6 +59,7 @@ class SubMenuCRUD:
 
     @classmethod
     async def delete_submenu(cls, menu_id):
+        """Удалить подменю"""
         async with async_session_maker() as session:
             query = select(SubMenu).where(SubMenu.menu_id == menu_id)
             result = await session.execute(query)

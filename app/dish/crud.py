@@ -8,6 +8,7 @@ class DishCRUD:
 
     @classmethod
     async def get_dishes(cls, menu_id, submenu_id):
+        """Получение всех блюд"""
         async with async_session_maker() as session:
             query = select(Dish).where(Dish.submenu_id == submenu_id, Menu.id == menu_id)
             result = await session.execute(query)
@@ -16,6 +17,7 @@ class DishCRUD:
 
     @classmethod
     async def create_dish(cls, submenu_id, title, description, price):
+        """Создание блюда"""
         async with async_session_maker() as session:
             dish = Dish(submenu_id=submenu_id, title=title, description=description, price=price)
             session.add(dish)
@@ -26,6 +28,7 @@ class DishCRUD:
 
     @classmethod
     async def get_dish(cls, submenu_id, dish_id):
+        """Получение блюда по id"""
         async with async_session_maker() as session:
             query = select(Dish).where(Dish.id == dish_id, Dish.submenu_id == submenu_id)
             result = await session.execute(query)
@@ -37,6 +40,7 @@ class DishCRUD:
 
     @classmethod
     async def update_dish(cls, submenu_id, dish_id, new_title, new_description, new_price):
+        """Обновление блюда"""
         async with async_session_maker() as session:
             query = select(Dish).filter_by(id=dish_id, submenu_id=submenu_id)
             result = await session.execute(query)
@@ -50,6 +54,7 @@ class DishCRUD:
 
     @classmethod
     async def delete_dish(cls, dish_id):
+        """Удаление блюда"""
         async with async_session_maker() as session:
             query = select(Dish).where(Dish.id == dish_id)
             result = await session.execute(query)

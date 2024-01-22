@@ -6,6 +6,7 @@ import uuid
 
 
 class Menu(Base):
+    """Модель меню"""
     __tablename__ = "menus"
 
     id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4, unique=True, nullable=False)
@@ -15,6 +16,7 @@ class Menu(Base):
 
 
 class SubMenu(Base):
+    """Модель подменю"""
     __tablename__ = "submenus"
 
     id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4, unique=True, nullable=False)
@@ -26,6 +28,7 @@ class SubMenu(Base):
 
 
 class Dish(Base):
+    """Модель блюда"""
     __tablename__ = "dishes"
 
     id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4, unique=True, nullable=False)
