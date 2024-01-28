@@ -1,0 +1,53 @@
+version: "3.7"
+services:
+
+  web:
+    build: .
+    command: bash -c 'alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --reload'
+    restart: always
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - test_db
+    env_file:
+      - .env
+
+  db:
+    image: postgres:15.1-alpine
+    restart: always
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
+
+  test:
+    build: .
+    command: pytest -v
+    volumes:
+      - .:/code
+    depends_on:
+      - db
+      - test_db
+    env_file:
+      - .env
+
+  test_db:
+    image: postgres:15.1-alpine
+    restart: always
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./data/test_db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
+      - POSTGRES_DB=${DB_NAME_TEST}
+      - POSTGRES_USER=${DB_USER_TEST}
+      - POSTGRES_PASSWORD=${DB_PASS_TEST}

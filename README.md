@@ -8,6 +8,9 @@
 - для windows - venv/Scripts/activate
 4. Обновите менеджер пакетов: python.exe -m pip install --upgrade pip
 5. Установите все зависимости: pip install -r requirements.txt
-6. В файле .env укажите свои данные для подключения к БД (по умолчанию выставлены стандартные значения предлагаемые при установке postgresql)
-7. Примените миграции: alembic upgrade head
-8. Запуск проека: uvicorn app.main:app --reload
+6. Запуск проека: docker-compose up -d
+7. Запуск тестов: docker-compose up test
+
+
+Реализация вывода количества подменю и блюд для меню через один запрос:
+- app/menus/crud.py/get_menu
