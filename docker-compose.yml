@@ -11,7 +11,7 @@ services:
       - "8000:8000"
     depends_on:
       - db
-      - test_db
+#      - test_db
     env_file:
       - .env
 
@@ -34,7 +34,7 @@ services:
     volumes:
       - .:/code
     depends_on:
-      - db
+#      - db
       - test_db
     env_file:
       - .env
@@ -51,3 +51,11 @@ services:
       - POSTGRES_DB=${DB_NAME_TEST}
       - POSTGRES_USER=${DB_USER_TEST}
       - POSTGRES_PASSWORD=${DB_PASS_TEST}
+
+  redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./data/redis:/data

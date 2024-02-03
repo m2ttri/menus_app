@@ -1,21 +1,35 @@
 from fastapi import HTTPException
-from sqlalchemy import select, func
-from app.models import Menu, SubMenu, Dish
+from sqlalchemy import func, select
+
+from app.models import Dish, Menu, SubMenu
+from app.repository import AbstractSubMenu
 
 
-class SubMenuCRUD:
+class SubMenuCRUD(AbstractSubMenu):
 
     @classmethod
     async def get_submenus(cls, menu_id, session):
         """Получение всех подменю"""
+
         query = select(SubMenu).join(Menu, Menu.id == SubMenu.menu_id).where(Menu.id == menu_id)
         result = await session.execute(query)
         return result.scalars().all()
 
     @classmethod
-    async def add_submenu(cls, menu_id, title, description, session):
+    async def add_submenu(
+            cls,
+            menu_id,
+            title,
+            description,
+            session
+    ):
+
         """Создание подменю"""
-        submenu = SubMenu(menu_id=menu_id, title=title, description=description)
+        submenu = SubMenu(
+            menu_id=menu_id,
+            title=title,
+            description=description
+        )
         session.add(submenu)
         await session.commit()
         await session.refresh(submenu)
@@ -24,11 +38,12 @@ class SubMenuCRUD:
     @classmethod
     async def get_submenu(cls, menu_id, submenu_id, session):
         """Получение подменю по id с подсчётом количества блюд"""
+
         query = select(SubMenu).where(SubMenu.menu_id == menu_id, SubMenu.id == submenu_id)
         result = await session.execute(query)
         submenu = result.scalar_one_or_none()
         if submenu is None:
-            raise HTTPException(status_code=404, detail="submenu not found")
+            raise HTTPException(status_code=404, detail='submenu not found')
         dishes_count = await session.execute(select(func.count()).where(Dish.submenu_id == SubMenu.id))
         dishes_count = dishes_count.scalar_one()
         submenu_with_counts = {
@@ -41,7 +56,14 @@ class SubMenuCRUD:
         return submenu_with_counts
 
     @classmethod
-    async def update_submenu(cls, menu_id, submenu_id, new_title, new_description, session):
+    async def update_submenu(
+            cls,
+            menu_id,
+            submenu_id,
+            new_title,
+            new_description,
+            session
+    ):
         """Обновить подменю"""
         query = select(SubMenu).where(SubMenu.menu_id == menu_id, SubMenu.id == submenu_id)
         result = await session.execute(query)
@@ -56,9 +78,11 @@ class SubMenuCRUD:
     @classmethod
     async def delete_submenu(cls, menu_id, session):
         """Удалить подменю"""
+
         query = select(SubMenu).where(SubMenu.menu_id == menu_id)
         result = await session.execute(query)
         submenu = result.scalars().all()
         for submenu in submenu:
             await session.delete(submenu)
         await session.commit()
+        return submenu
