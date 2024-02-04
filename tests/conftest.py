@@ -1,24 +1,25 @@
-import os
-import pytest
 import asyncio
-import asyncpg
-from httpx import AsyncClient
+import os
 from typing import AsyncGenerator
+
+import asyncpg
+import pytest
 from dotenv import load_dotenv
+from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
-from app.database import get_async_session, Base
-from app.config import settings
-from app.main import app
 
+from app.config import settings
+from app.database import Base, get_async_session
+from app.main import app
 
 load_dotenv()
 
-host = os.getenv("DB_HOST_TEST")
-user = os.getenv("DB_USER_TEST")
-password = os.getenv("DB_PASS_TEST")
-database = os.getenv("DB_NAME_TEST")
+host = os.getenv('DB_HOST_TEST')
+user = os.getenv('DB_USER_TEST')
+password = os.getenv('DB_PASS_TEST')
+database = os.getenv('DB_NAME_TEST')
 
 
 engine_test = create_async_engine(settings.TEST_DATABASE_URL, poolclass=NullPool)
@@ -43,25 +44,27 @@ async def prepare_database():
         await conn.run_sync(Base.metadata.drop_all)
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def event_loop(request):
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 async def ac() -> AsyncGenerator[AsyncClient, None]:
-    async with AsyncClient(app=app, base_url="http://test") as ac:
+    async with AsyncClient(app=app, base_url='http://test') as ac:
         yield ac
 
 
 async def execute_query(query: str):
     """Выполнить SQL запрос и вернуть результат"""
-    conn = await asyncpg.connect(host=host,
-                                 user=user,
-                                 password=password,
-                                 database=database)
+    conn = await asyncpg.connect(
+        host=host,
+        user=user,
+        password=password,
+        database=database
+    )
     result = await conn.fetchrow(query)
     await conn.close()
     return result

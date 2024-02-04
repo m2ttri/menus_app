@@ -1,4 +1,4 @@
-from typing import Any, Sequence
+from typing import Any
 
 from fastapi import APIRouter, Body, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,7 +16,7 @@ router = APIRouter(
 @router.get('', response_model=list[MenuOut])
 async def get_menus_list(
         session: AsyncSession = Depends(get_async_session)
-) -> Sequence[MenuOut] | None | Any:
+) -> list[MenuOut] | None | Any:
     """Получить список всех меню"""
 
     menus_list = await menu_service.get_menus_list(session)
@@ -31,7 +31,7 @@ async def get_menus_list(
 async def get_menu(
         menu_id: str,
         session: AsyncSession = Depends(get_async_session)
-) -> dict[str, str | int] | None | Any:
+) -> MenuOut | None | Any:
     """Получить меню по id"""
 
     menu = await menu_service.get_menu(menu_id, session)

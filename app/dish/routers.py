@@ -21,7 +21,7 @@ async def get_dishes(
         menu_id: str,
         submenu_id: str,
         session: AsyncSession = Depends(get_async_session)
-) -> Sequence[DishOut] | None | Any:
+) -> list[DishOut] | None | Any:
     """Получить список всех блюд"""
     dishes_list = await dish_service.get_dishes(
         menu_id,
@@ -40,7 +40,7 @@ async def get_dish(
         submenu_id,
         dish_id,
         session: AsyncSession = Depends(get_async_session)
-) -> dict[str, str | int] | None | Any:
+) -> DishOut | None | Any:
     """Получить блюдо по id"""
 
     dish = await dish_service.get_dish(

@@ -14,3 +14,6 @@
 
 Реализация вывода количества подменю и блюд для меню через один запрос:
 - app/menus/crud.py/get_menu
+
+Реализация в тестах аналог Django reverse() для FastAPI:
+- tests/routes.py

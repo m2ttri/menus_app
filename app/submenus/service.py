@@ -9,7 +9,7 @@ from app.submenus.crud import SubMenuCRUD
 
 
 class SubmenuService:
-    """Методы для кеширование и выполнение CRUD операций"""
+    """Методы для кеширования CRUD операций поодменю"""
 
     def __init__(self):
         self.cache = cache

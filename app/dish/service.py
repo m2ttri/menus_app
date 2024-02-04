@@ -9,7 +9,7 @@ from app.schemas import DishIn
 
 
 class DishService:
-    """Методы для кеширование и выполнение CRUD операций"""
+    """Методы для кеширования CRUD операций блюда"""
 
     def __init__(self):
         self.cache = cache

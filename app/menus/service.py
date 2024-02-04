@@ -9,7 +9,7 @@ from app.schemas import MenuIn
 
 
 class MenuService:
-    """Методы для кеширование и выполнение CRUD операций"""
+    """Методы для кеширования CRUD операций меню"""
 
     def __init__(self):
         self.cache = cache

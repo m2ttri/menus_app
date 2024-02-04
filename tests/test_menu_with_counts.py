@@ -2,11 +2,11 @@ from httpx import AsyncClient
 from routes import reverse
 
 
-async def test_menu_with_counts(ac: AsyncClient):
+async def test_menu_with_counts(ac: AsyncClient) -> None:
     """Проверка кол-ва блюд и подменю в меню"""
 
     # Создаёт меню
-    data = {
+    data: dict[str, str] = {
         'title': 'My menu 1',
         'description': 'My menu description 1'
     }
@@ -14,8 +14,8 @@ async def test_menu_with_counts(ac: AsyncClient):
         reverse('create_menu'),
         json=data
     )
-    assert response.status_code == 201
     data = response.json()
+    assert response.status_code == 201
     assert 'id' in data
     assert data['title'] == 'My menu 1'
     assert data['description'] == 'My menu description 1'
@@ -31,8 +31,8 @@ async def test_menu_with_counts(ac: AsyncClient):
                 menu_id=menu_id),
         json=data
     )
-    assert response.status_code == 201
     data = response.json()
+    assert response.status_code == 201
     assert 'id' in data
     assert data['title'] == 'My submenu 1'
     assert data['description'] == 'My submenu description 1'
@@ -50,8 +50,8 @@ async def test_menu_with_counts(ac: AsyncClient):
                 submenu_id=submenu_id),
         json=data
     )
-    assert response.status_code == 201
     data = response.json()
+    assert response.status_code == 201
     assert 'id' in data
     assert data['title'] == 'My dish 1'
     assert data['description'] == 'My dish description 1'
@@ -69,8 +69,8 @@ async def test_menu_with_counts(ac: AsyncClient):
                 submenu_id=submenu_id),
         json=data
     )
-    assert response.status_code == 201
     data = response.json()
+    assert response.status_code == 201
     assert 'id' in data
     assert data['title'] == 'My dish 2'
     assert data['description'] == 'My dish description 2'
@@ -81,8 +81,8 @@ async def test_menu_with_counts(ac: AsyncClient):
         reverse('get_menu',
                 menu_id=menu_id)
     )
-    assert response.status_code == 200
     data = response.json()
+    assert response.status_code == 200
     assert data['id'] == str(menu_id)
     assert data['title'] == 'My menu 1'
     assert data['description'] == 'My menu description 1'
@@ -95,8 +95,8 @@ async def test_menu_with_counts(ac: AsyncClient):
                 menu_id=menu_id,
                 submenu_id=submenu_id)
     )
-    assert response.status_code == 200
     data = response.json()
+    assert response.status_code == 200
     assert data['id'] == str(submenu_id)
     assert data['title'] == 'My submenu 1'
     assert data['description'] == 'My submenu description 1'
@@ -115,8 +115,8 @@ async def test_menu_with_counts(ac: AsyncClient):
         reverse('get_submenus_list',
                 menu_id=menu_id)
     )
-    assert response.status_code == 200
     data = response.json()
+    assert response.status_code == 200
     assert isinstance(data, list)
     assert len(data) == 0
 
@@ -126,8 +126,8 @@ async def test_menu_with_counts(ac: AsyncClient):
                 menu_id=menu_id,
                 submenu_id=submenu_id)
     )
-    assert response.status_code == 200
     data = response.json()
+    assert response.status_code == 200
     assert isinstance(data, list)
     assert len(data) == 0
 
@@ -136,8 +136,8 @@ async def test_menu_with_counts(ac: AsyncClient):
         reverse('get_menu',
                 menu_id=menu_id)
     )
-    assert response.status_code == 200
     data = response.json()
+    assert response.status_code == 200
     assert data['id'] == str(menu_id)
     assert data['title'] == 'My menu 1'
     assert data['description'] == 'My menu description 1'
@@ -153,7 +153,7 @@ async def test_menu_with_counts(ac: AsyncClient):
 
     # Просматривает список меню
     response = await ac.get(reverse('get_menus_list'))
-    assert response.status_code == 200
     data = response.json()
+    assert response.status_code == 200
     assert isinstance(data, list)
     assert len(data) == 0

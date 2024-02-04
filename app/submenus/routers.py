@@ -4,7 +4,8 @@ from fastapi import APIRouter, Body, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_async_session
-from app.schemas import Submenu, SubmenuIn, SubmenuOut
+from app.models import SubMenu
+from app.schemas import SubmenuIn, SubmenuOut
 from app.submenus.service import submenu_service
 
 router = APIRouter(
@@ -17,7 +18,7 @@ router = APIRouter(
 async def get_submenus(
         menu_id: str,
         session: AsyncSession = Depends(get_async_session)
-) -> Sequence[SubmenuOut] | None | Any:
+) -> list[SubmenuOut] | None | Any:
     """Получить список всех подменю"""
 
     submenus_list = await submenu_service.get_submenus_list(menu_id, session)
@@ -33,7 +34,7 @@ async def get_submenu(
         menu_id: str,
         submenu_id: str,
         session: AsyncSession = Depends(get_async_session)
-) -> dict[str, str | int] | None | Any:
+) -> SubmenuOut | None | Any:
     """Получчить подменю по id"""
 
     submenu = await submenu_service.get_submenu(
@@ -86,7 +87,7 @@ async def update_submenu(
 async def delete_submenu(
         menu_id: str,
         session: AsyncSession = Depends(get_async_session)
-) -> type[Submenu] | None:
+) -> Sequence[SubMenu] | SubMenu:
     """Удалить подменю"""
 
     result = await submenu_service.delete_submenu(menu_id, session)
