@@ -1,10 +1,11 @@
+from typing import Any, Sequence
+
 from fastapi import APIRouter, Body, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.cache import cache
 from app.database import get_async_session
-from app.menus.service import MenuCRUD
-from app.schemas import MenuIn, MenuOut
+from app.menus.service import menu_service
+from app.schemas import Menu, MenuIn, MenuOut
 
 router = APIRouter(
     prefix='/api/v1/menus',
@@ -13,19 +14,12 @@ router = APIRouter(
 
 
 @router.get('', response_model=list[MenuOut])
-async def get_menus_list(session: AsyncSession = Depends(get_async_session)):
+async def get_menus_list(
+        session: AsyncSession = Depends(get_async_session)
+) -> Sequence[MenuOut] | None | Any:
     """Получить список всех меню"""
 
-    menus_list = await cache.get('menus_list')
-    if menus_list is not None:
-        return menus_list
-
-    menus_list = await MenuCRUD.get_menus_list(session)
-    await cache.set(
-        'menus_list',
-        menus_list,
-        ex=60
-    )
+    menus_list = await menu_service.get_menus_list(session)
     return menus_list
 
 
@@ -37,35 +31,21 @@ async def get_menus_list(session: AsyncSession = Depends(get_async_session)):
 async def get_menu(
         menu_id: str,
         session: AsyncSession = Depends(get_async_session)
-):
+) -> dict[str, str | int] | None | Any:
     """Получить меню по id"""
 
-    menu = await cache.get(menu_id)
-    if menu:
-        return menu
-
-    menu = await MenuCRUD.get_menu(menu_id, session)
-    await cache.set(menu_id, menu)
+    menu = await menu_service.get_menu(menu_id, session)
     return menu
 
 
-@router.post(
-    '',
-    response_model=MenuOut,
-    status_code=201
-)
+@router.post('', response_model=MenuOut, status_code=201)
 async def create_menu(
         menu: MenuIn = Body(...),
         session: AsyncSession = Depends(get_async_session)
-):
+) -> MenuOut:
     """Создать меню"""
 
-    new_menu = await MenuCRUD.create_menu(
-        menu.title,
-        menu.description,
-        session
-    )
-    await cache.set(new_menu.id, new_menu)
+    new_menu = await menu_service.create_menu(menu, session)
     return new_menu
 
 
@@ -74,16 +54,14 @@ async def update_menu(
     menu_id: str,
     menu: MenuIn = Body(...),
     session: AsyncSession = Depends(get_async_session)
-):
+) -> MenuOut:
     """Обновить меню"""
 
-    result = await MenuCRUD.update_menu(
+    result = await menu_service.update_menu(
         menu_id,
-        menu.title,
-        menu.description,
+        menu,
         session
     )
-    await cache.invalidate(menu_id)
     return result
 
 
@@ -91,9 +69,8 @@ async def update_menu(
 async def delete_menu(
         menu_id: str,
         session: AsyncSession = Depends(get_async_session)
-):
+) -> type[Menu] | None:
     """Удалить меню"""
 
-    result = await MenuCRUD.delete_menu(menu_id, session)
-    await cache.invalidate(menu_id)
+    result = await menu_service.delete_menu(menu_id, session)
     return result

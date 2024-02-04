@@ -1,85 +1,61 @@
-from fastapi import HTTPException
-from sqlalchemy import distinct, func, select
+from typing import Any, Sequence
 
-from app.models import Dish, Menu, SubMenu
-from app.repository import AbstractMenu
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.cache import cache
+from app.menus.crud import MenuCRUD
+from app.models import Menu
+from app.schemas import MenuIn
 
 
-class MenuCRUD(AbstractMenu):
-    """Класс предоставляет методы для выполнения CRUD операций над меню"""
+class MenuService:
+    """Методы для кеширование и выполнение CRUD операций"""
 
-    @classmethod
-    async def get_menus_list(cls, session):
-        """Получение всех меню"""
+    def __init__(self):
+        self.cache = cache
+        self.menu = MenuCRUD()
 
-        query = select(Menu)
-        menu = await session.execute(query)
-        return menu.scalars().all()
+    async def get_menus_list(self, session: AsyncSession) -> Sequence[Menu] | None | Any:
+        menus_list = await self.cache.get('menus_list')
+        if menus_list is not None:
+            return menus_list
 
-    @classmethod
-    async def get_menu(cls, menu_id, session):
-        """Получение меню по id с подсчётом количества подменю и блюд"""
+        menus_list = await self.menu.get_menus_list(session)
+        await self.cache.set('menus_list', menus_list, ex=60)
+        return menus_list
 
-        query = select(Menu).filter_by(id=menu_id)
-        result = await session.execute(query)
-        menu = result.scalars().first()
-        if menu is None:
-            raise HTTPException(
-                status_code=404,
-                detail='menu not found'
-            )
+    async def get_menu(self, menu_id: str, session: AsyncSession) -> dict[str, str | int] | None | Any:
+        menu = await self.cache.get(menu_id)
+        if menu:
+            return menu
 
-        # Реализация вывода количества подменю и блюд для меню через один запрос
-        query = (
-            select(
-                Menu,
-                func.count(distinct(SubMenu.id)).label('submenu_count'),
-                func.count(distinct(Dish.id)).label('dishes_count')
-            )
-            .outerjoin(SubMenu, SubMenu.menu_id == Menu.id)
-            .outerjoin(Dish, Dish.submenu_id == SubMenu.id)
-            .group_by(Menu.id)
-            .filter(Menu.id == menu_id)
+        menu = await self.menu.get_menu(menu_id, session)
+        await self.cache.set(menu_id, menu)
+        return menu
+
+    async def create_menu(self, menu: MenuIn, session: AsyncSession) -> Menu:
+        new_menu = await self.menu.create_menu(
+            menu.title,
+            menu.description,
+            session
         )
+        await self.cache.set(new_menu.id, new_menu)
+        return new_menu
 
-        result = await session.execute(query)
-        menu, submenus_count, dishes_count = result.first()
-        menu_with_counts = {
-            'id': menu.id,
-            'title': menu.title,
-            'description': menu.description,
-            'submenus_count': submenus_count,
-            'dishes_count': dishes_count
-        }
-        return menu_with_counts
+    async def update_menu(self, menu_id: str, menu: MenuIn, session: AsyncSession) -> Menu:
+        result = await self.menu.update_menu(
+            menu_id,
+            menu.title,
+            menu.description,
+            session
+        )
+        await self.cache.invalidate(menu_id)
+        return result
 
-    @classmethod
-    async def create_menu(cls, title, description, session):
-        """Создание меню"""
+    async def delete_menu(self, menu_id: str, session: AsyncSession) -> type[Menu] | None:
+        result = await self.menu.delete_menu(menu_id, session)
+        await self.cache.invalidate(menu_id)
+        return result
 
-        menu = Menu(title=title, description=description)
-        session.add(menu)
-        await session.commit()
-        await session.refresh(menu)
-        return menu
 
-    @classmethod
-    async def update_menu(cls, menu_id, new_title, new_description, session):
-        """Обновление меню"""
-
-        query = select(Menu).filter_by(id=menu_id)
-        result = await session.execute(query)
-        menu = result.scalar_one()
-        menu.title = new_title
-        menu.description = new_description
-        await session.commit()
-        return menu
-
-    @classmethod
-    async def delete_menu(cls, menu_id, session):
-        """Удаление меню"""
-
-        menu = await session.get(Menu, menu_id)
-        await session.delete(menu)
-        await session.commit()
-        return menu
+menu_service = MenuService()

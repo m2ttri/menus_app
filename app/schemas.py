@@ -24,6 +24,9 @@ class MenuOut(MenuIn):
     submenus_count: int | None = 0
     dishes_count: int | None = 0
 
+    class Config:
+        orm_mode = True
+
 
 class Submenu(BaseModel):
     title: str

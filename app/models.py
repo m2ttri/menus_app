@@ -7,8 +7,8 @@ from sqlalchemy.orm import relationship
 from app.database import Base
 
 
+# Модель меню
 class Menu(Base):
-    """Модель меню"""
     __tablename__ = 'menus'
 
     id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4, unique=True, nullable=False)
@@ -17,8 +17,8 @@ class Menu(Base):
     submenus = relationship('SubMenu', back_populates='menu', cascade='all, delete-orphan')
 
 
+# Модель подменю
 class SubMenu(Base):
-    """Модель подменю"""
     __tablename__ = 'submenus'
 
     id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4, unique=True, nullable=False)
@@ -29,8 +29,8 @@ class SubMenu(Base):
     dishes = relationship('Dish', back_populates='submenu', cascade='all, delete-orphan')
 
 
+# Модель блюда
 class Dish(Base):
-    """Модель блюда"""
     __tablename__ = 'dishes'
 
     id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4, unique=True, nullable=False)

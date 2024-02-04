@@ -11,7 +11,6 @@ services:
       - "8000:8000"
     depends_on:
       - db
-#      - test_db
     env_file:
       - .env
 
@@ -34,7 +33,6 @@ services:
     volumes:
       - .:/code
     depends_on:
-#      - db
       - test_db
     env_file:
       - .env

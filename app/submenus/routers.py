@@ -1,10 +1,11 @@
+from typing import Any, Sequence
+
 from fastapi import APIRouter, Body, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.cache import cache
 from app.database import get_async_session
-from app.schemas import SubmenuIn, SubmenuOut
-from app.submenus.service import SubMenuCRUD
+from app.schemas import Submenu, SubmenuIn, SubmenuOut
+from app.submenus.service import submenu_service
 
 router = APIRouter(
     prefix='/api/v1/menus',
@@ -12,49 +13,15 @@ router = APIRouter(
 )
 
 
-@router.get(
-    '/{menu_id}/submenus',
-    response_model=list[SubmenuOut]
-)
+@router.get('/{menu_id}/submenus', response_model=list[SubmenuOut])
 async def get_submenus(
         menu_id: str,
         session: AsyncSession = Depends(get_async_session)
-):
+) -> Sequence[SubmenuOut] | None | Any:
     """Получить список всех подменю"""
 
-    submenus_list = await cache.get('submenus_list')
-    if submenus_list is not None:
-        return submenus_list
-    else:
-        submenus_list = await SubMenuCRUD.get_submenus(menu_id, session)
-        await cache.set(
-            'menus_list',
-            submenus_list,
-            ex=60
-        )
-        return submenus_list
-
-
-@router.post(
-    '/{menu_id}/submenus',
-    response_model=SubmenuOut,
-    status_code=201
-)
-async def create_submenu(
-        menu_id: str,
-        submenu: SubmenuIn = Body(...),
-        session: AsyncSession = Depends(get_async_session)
-):
-    """Создать подменю"""
-
-    new_submenu = await SubMenuCRUD.add_submenu(
-        menu_id,
-        submenu.title,
-        submenu.description,
-        session
-    )
-    await cache.set(new_submenu.id, new_submenu)
-    return new_submenu
+    submenus_list = await submenu_service.get_submenus_list(menu_id, session)
+    return submenus_list
 
 
 @router.get(
@@ -66,20 +33,35 @@ async def get_submenu(
         menu_id: str,
         submenu_id: str,
         session: AsyncSession = Depends(get_async_session)
-):
+) -> dict[str, str | int] | None | Any:
     """Получчить подменю по id"""
 
-    submenu = await cache.get(submenu_id)
-    if submenu:
-        return submenu
-    else:
-        menu = await SubMenuCRUD.get_submenu(
-            menu_id,
-            submenu_id,
-            session
-        )
-        await cache.set(menu_id, menu)
-        return menu
+    submenu = await submenu_service.get_submenu(
+        menu_id,
+        submenu_id,
+        session
+    )
+    return submenu
+
+
+@router.post(
+    '/{menu_id}/submenus',
+    response_model=SubmenuOut,
+    status_code=201
+)
+async def create_submenu(
+        menu_id: str,
+        submenu: SubmenuIn = Body(...),
+        session: AsyncSession = Depends(get_async_session)
+) -> SubmenuOut:
+    """Создать подменю"""
+
+    new_submenu = await submenu_service.create_submenu(
+        menu_id,
+        submenu,
+        session
+    )
+    return new_submenu
 
 
 @router.patch('/{menu_id}/submenus/{submenu_id}', response_model=SubmenuOut)
@@ -88,24 +70,24 @@ async def update_submenu(
         submenu_id: str,
         submenu: SubmenuIn = Body(...),
         session: AsyncSession = Depends(get_async_session)
-):
+) -> SubmenuOut:
     """Обновить подменю"""
 
-    result = await SubMenuCRUD.update_submenu(
+    result = await submenu_service.update_submenu(
         menu_id,
         submenu_id,
-        submenu.title,
-        submenu.description,
+        submenu,
         session
     )
-    await cache.invalidate(menu_id)
     return result
 
 
 @router.delete('/{menu_id}/submenus/{submenu_id}', response_model=SubmenuOut)
-async def delete_submenu(menu_id: str, session: AsyncSession = Depends(get_async_session)):
+async def delete_submenu(
+        menu_id: str,
+        session: AsyncSession = Depends(get_async_session)
+) -> type[Submenu] | None:
     """Удалить подменю"""
 
-    result = await SubMenuCRUD.delete_submenu(menu_id, session)
-    await cache.invalidate(menu_id)
+    result = await submenu_service.delete_submenu(menu_id, session)
     return result

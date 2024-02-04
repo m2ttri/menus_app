@@ -1,88 +1,63 @@
-from fastapi import HTTPException
-from sqlalchemy import func, select
+from typing import Any, Sequence
 
-from app.models import Dish, Menu, SubMenu
-from app.repository import AbstractSubMenu
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.cache import cache
+from app.models import SubMenu
+from app.schemas import SubmenuIn
+from app.submenus.crud import SubMenuCRUD
 
 
-class SubMenuCRUD(AbstractSubMenu):
+class SubmenuService:
+    """Методы для кеширование и выполнение CRUD операций"""
 
-    @classmethod
-    async def get_submenus(cls, menu_id, session):
-        """Получение всех подменю"""
+    def __init__(self):
+        self.cache = cache
+        self.submenu = SubMenuCRUD
 
-        query = select(SubMenu).join(Menu, Menu.id == SubMenu.menu_id).where(Menu.id == menu_id)
-        result = await session.execute(query)
-        return result.scalars().all()
+    async def get_submenus_list(self, menu_id: str, session: AsyncSession) -> Sequence[SubMenu] | None | Any:
+        submenus_list = await self.cache.get('submenus_list')
+        if submenus_list is not None:
+            return submenus_list
 
-    @classmethod
-    async def add_submenu(
-            cls,
-            menu_id,
-            title,
-            description,
-            session
-    ):
+        submenus_list = await self.submenu.get_submenus(menu_id, session)
+        await self.cache.set('menus_list', submenus_list, ex=60)
+        return submenus_list
 
-        """Создание подменю"""
-        submenu = SubMenu(
-            menu_id=menu_id,
-            title=title,
-            description=description
-        )
-        session.add(submenu)
-        await session.commit()
-        await session.refresh(submenu)
+    async def get_submenu(
+            self,
+            menu_id: str,
+            submenu_id: str,
+            session: AsyncSession
+    ) -> dict[str, str | int] | None | Any:
+        submenu = await self.cache.get(submenu_id)
+        if submenu:
+            return submenu
+
+        submenu = await self.submenu.get_submenu(menu_id, submenu_id, session)
+        await self.cache.set(menu_id, submenu)
         return submenu
 
-    @classmethod
-    async def get_submenu(cls, menu_id, submenu_id, session):
-        """Получение подменю по id с подсчётом количества блюд"""
+    async def create_submenu(self, menu_id: str, submenu: SubmenuIn, session: AsyncSession) -> SubMenu:
+        new_submenu = await self.submenu.add_submenu(menu_id, submenu.title, submenu.description, session)
+        await self.cache.set(new_submenu.id, new_submenu)
+        return new_submenu
 
-        query = select(SubMenu).where(SubMenu.menu_id == menu_id, SubMenu.id == submenu_id)
-        result = await session.execute(query)
-        submenu = result.scalar_one_or_none()
-        if submenu is None:
-            raise HTTPException(status_code=404, detail='submenu not found')
-        dishes_count = await session.execute(select(func.count()).where(Dish.submenu_id == SubMenu.id))
-        dishes_count = dishes_count.scalar_one()
-        submenu_with_counts = {
-            'id': submenu.id,
-            'title': submenu.title,
-            'description': submenu.description,
-            'dishes_count': dishes_count,
-            'menu_id': submenu.menu_id
-        }
-        return submenu_with_counts
-
-    @classmethod
-    async def update_submenu(
-            cls,
+    async def update_submenu(self, menu_id: str, submenu_id: str, submenu: SubmenuIn, session: AsyncSession) -> SubMenu:
+        result = await self.submenu.update_submenu(
             menu_id,
             submenu_id,
-            new_title,
-            new_description,
+            submenu.title,
+            submenu.description,
             session
-    ):
-        """Обновить подменю"""
-        query = select(SubMenu).where(SubMenu.menu_id == menu_id, SubMenu.id == submenu_id)
-        result = await session.execute(query)
-        submenu = result.scalar_one_or_none()
-        if submenu is None:
-            raise ValueError(f"Submenu with id {submenu_id} does not exist")
-        submenu.title = new_title
-        submenu.description = new_description
-        await session.commit()
-        return submenu
+        )
+        await self.cache.invalidate(menu_id)
+        return result
 
-    @classmethod
-    async def delete_submenu(cls, menu_id, session):
-        """Удалить подменю"""
+    async def delete_submenu(self, menu_id: str, session: AsyncSession) -> type[SubMenu] | None:
+        result = await self.submenu.delete_submenu(menu_id, session)
+        await self.cache.invalidate(menu_id)
+        return result
 
-        query = select(SubMenu).where(SubMenu.menu_id == menu_id)
-        result = await session.execute(query)
-        submenu = result.scalars().all()
-        for submenu in submenu:
-            await session.delete(submenu)
-        await session.commit()
-        return submenu
+
+submenu_service = SubmenuService()
