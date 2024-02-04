@@ -88,7 +88,11 @@ class DishCRUD(AbstractDish):
         return dish
 
     @classmethod
-    async def delete_dish(cls, dish_id: str, session: AsyncSession) -> Sequence[Dish] | Dish:
+    async def delete_dish(
+            cls,
+            dish_id: str,
+            session: AsyncSession
+    ) -> Sequence[Dish] | Dish:
         """Удаление блюда"""
 
         query = select(Dish).where(Dish.id == dish_id)

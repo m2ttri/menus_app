@@ -11,6 +11,8 @@ services:
       - "8000:8000"
     depends_on:
       - db
+      - redis
+      - test_db
     env_file:
       - .env
 
@@ -29,10 +31,12 @@ services:
 
   test:
     build: .
-    command: pytest -v
+    command: bash -c 'pytest -v && exit'
     volumes:
       - .:/code
     depends_on:
+      - web
+      - db
       - test_db
     env_file:
       - .env
