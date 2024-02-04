@@ -7,16 +7,10 @@ class Menu(BaseModel):
     title: str
     description: str
 
-    class Config:
-        orm_mode = True
-
 
 class MenuIn(BaseModel):
     title: str
     description: str
-
-    class Config:
-        orm_mode = True
 
 
 class MenuOut(MenuIn):
@@ -24,24 +18,15 @@ class MenuOut(MenuIn):
     submenus_count: int | None = 0
     dishes_count: int | None = 0
 
-    class Config:
-        orm_mode = True
-
 
 class Submenu(BaseModel):
     title: str
     description: str
 
-    class Config:
-        orm_mode = True
-
 
 class SubmenuIn(BaseModel):
     title: str
     description: str
-
-    class Config:
-        orm_mode = True
 
 
 class SubmenuOut(SubmenuIn):
@@ -54,17 +39,11 @@ class Dish(BaseModel):
     description: str
     price: str
 
-    class Config:
-        orm_mode = True
-
 
 class DishIn(BaseModel):
     title: str
     description: str
     price: str
-
-    class Config:
-        orm_mode = True
 
 
 class DishOut(DishIn):
