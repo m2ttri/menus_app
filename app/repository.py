@@ -58,7 +58,7 @@ class AbstractSubMenu(ABC):
         pass
 
     @abstractmethod
-    def delete_submenu(self, menu_id: str, session: Session) -> Any:
+    def delete_submenu(self, menu_id: str, submenu_id: str, session: Session) -> Any:
         """Удаление подменю"""
         pass
 
@@ -88,6 +88,6 @@ class AbstractDish(ABC):
         pass
 
     @abstractmethod
-    def delete_dish(self, dish_id: str, session: Session) -> Any:
+    def delete_dish(self, menu_id: str, submenu_id: str, dish_id: str, session: Session) -> Any:
         """Удаление блюда"""
         pass

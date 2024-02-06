@@ -103,6 +103,7 @@ class SubMenuCRUD(AbstractSubMenu):
     async def delete_submenu(
             cls,
             menu_id: str,
+            submenu_id: str,
             session: AsyncSession
     ) -> Sequence[SubMenu] | SubMenu:
         """Удалить подменю"""

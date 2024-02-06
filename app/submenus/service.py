@@ -26,7 +26,7 @@ class SubmenuService:
             return submenus_list
 
         submenus_list = await self.submenu.get_submenus(menu_id, session)
-        await self.cache.set('menus_list', submenus_list, ex=60)
+        await self.cache.set('submenus_list', submenus_list, prefix='submenu')
         return submenus_list
 
     async def get_submenu(
@@ -36,7 +36,7 @@ class SubmenuService:
             session: AsyncSession
     ) -> dict[str, str | int] | None | Any:
 
-        submenu = await self.cache.get(submenu_id)
+        submenu = await self.cache.get(submenu_id, parent_id=menu_id, prefix='submenu')
         if submenu:
             return submenu
 
@@ -45,7 +45,7 @@ class SubmenuService:
             submenu_id,
             session
         )
-        await self.cache.set(menu_id, submenu)
+        await self.cache.set(submenu_id, submenu, parent_id=menu_id, prefix='submenu')
         return submenu
 
     async def create_submenu(
@@ -61,7 +61,7 @@ class SubmenuService:
             submenu.description,
             session
         )
-        await self.cache.set(new_submenu.id, new_submenu)
+        await self.cache.set(new_submenu.id, new_submenu, parent_id=menu_id, prefix='submenu')
         return new_submenu
 
     async def update_submenu(
@@ -79,17 +79,19 @@ class SubmenuService:
             submenu.description,
             session
         )
-        await self.cache.invalidate(menu_id)
+        await self.cache.invalidate(submenu_id, parent_id=menu_id, prefix='submenu')
         return result
 
     async def delete_submenu(
             self,
             menu_id: str,
+            submenu_id: str,
             session: AsyncSession
     ) -> Sequence[SubMenu] | SubMenu:
 
-        result = await self.submenu.delete_submenu(menu_id, session)
-        await self.cache.invalidate(menu_id)
+        result = await self.submenu.delete_submenu(menu_id, submenu_id, session)
+        await self.cache.invalidate(submenu_id, parent_id=menu_id, prefix='submenu')
+        await self.cache.invalidate(menu_id, prefix='menu')
         return result
 
 

@@ -15,7 +15,7 @@ router = APIRouter(
 
 
 @router.get('/{menu_id}/submenus', response_model=list[SubmenuOut])
-async def get_submenus(
+async def get_submenus_list(
         menu_id: str,
         session: AsyncSession = Depends(get_async_session)
 ) -> list[SubmenuOut] | None | Any:
@@ -86,9 +86,10 @@ async def update_submenu(
 @router.delete('/{menu_id}/submenus/{submenu_id}', response_model=SubmenuOut)
 async def delete_submenu(
         menu_id: str,
+        submenu_id: str,
         session: AsyncSession = Depends(get_async_session)
 ) -> Sequence[SubMenu] | SubMenu:
     """Удалить подменю"""
 
-    result = await submenu_service.delete_submenu(menu_id, session)
+    result = await submenu_service.delete_submenu(menu_id, submenu_id, session)
     return result

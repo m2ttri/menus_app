@@ -90,6 +90,8 @@ class DishCRUD(AbstractDish):
     @classmethod
     async def delete_dish(
             cls,
+            menu_id: str,
+            submenu_id: str,
             dish_id: str,
             session: AsyncSession
     ) -> Sequence[Dish] | Dish:

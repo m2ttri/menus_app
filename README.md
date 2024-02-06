@@ -16,4 +16,4 @@
 - app/menus/crud.py/get_menu
 
 Реализация в тестах аналог Django reverse() для FastAPI:
-- tests/routes.py
+- app/main.py

@@ -17,7 +17,7 @@ router = APIRouter(
     '/{menu_id}/submenus/{submenu_id}/dishes',
     response_model=list[DishOut]
 )
-async def get_dishes(
+async def get_dishes_list(
         menu_id: str,
         submenu_id: str,
         session: AsyncSession = Depends(get_async_session)
@@ -97,10 +97,12 @@ async def update_dish(
     response_model=DishOut
 )
 async def delete_dish(
+        menu_id,
+        submenu_id,
         dish_id,
         session: AsyncSession = Depends(get_async_session)
 ) -> Sequence[Dish] | Dish:
     """Удалить блюдо"""
 
-    result = await dish_service.delete_dish(dish_id, session)
+    result = await dish_service.delete_dish(menu_id, submenu_id, dish_id, session)
     return result

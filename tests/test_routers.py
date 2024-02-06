@@ -1,6 +1,7 @@
 from conftest import get_dish_instance, get_menu_instance, get_submenu_instance
 from httpx import AsyncClient
-from routes import reverse
+
+from app.main import reverse
 
 
 async def test_create_menu(ac: AsyncClient) -> None:
@@ -124,11 +125,11 @@ async def test_create_submenu(ac: AsyncClient) -> None:
 async def test_get_submenus_list(ac: AsyncClient) -> None:
     """Проверка получения списка подменю"""
 
-    menu = await get_menu_instance()
-    if menu is None:
-        await test_create_menu(ac)
-        menu = await get_menu_instance()
-    menu_id = menu['id']
+    submenu = await get_submenu_instance()
+    if submenu is None:
+        await test_create_submenu(ac)
+        submenu = await get_submenu_instance()
+    menu_id = submenu['menu_id']
 
     response = await ac.get(
         reverse('get_submenus_list',
@@ -210,10 +211,11 @@ async def test_delete_submenu(ac: AsyncClient) -> None:
 async def test_create_dish(ac: AsyncClient) -> None:
     """Проверка создания блюда"""
 
-    submenu = await get_submenu_instance()
-    if submenu is None:
+    dish = await get_dish_instance()
+    if dish is None:
         await test_create_submenu(ac)
-        submenu = await get_submenu_instance()
+
+    submenu = await get_submenu_instance()
     menu_id = submenu['menu_id']
     submenu_id = submenu['id']
 
@@ -239,10 +241,11 @@ async def test_create_dish(ac: AsyncClient) -> None:
 async def test_get_dishes_list(ac: AsyncClient) -> None:
     """Проверка получения списка блюд"""
 
+    dish = await get_dish_instance()
+    if dish is None:
+        await test_create_dish(ac)
+
     submenu = await get_submenu_instance()
-    if submenu is None:
-        await test_create_submenu(ac)
-        submenu = await get_submenu_instance()
     menu_id = submenu['menu_id']
     submenu_id = submenu['id']
 
@@ -264,6 +267,7 @@ async def test_get_dish(ac: AsyncClient) -> None:
     if dish is None:
         await test_create_dish(ac)
         dish = await get_dish_instance()
+
     menu = await get_menu_instance()
     menu_id = menu['id']
     submenu_id = dish['submenu_id']
