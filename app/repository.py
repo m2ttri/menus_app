@@ -82,8 +82,8 @@ class AbstractDish(ABC):
         pass
 
     @abstractmethod
-    def update_dish(self, submenu_id: str, dish_id: str, new_title: str, new_description: str, new_price: float,
-                    session: Session) -> Any:
+    def update_dish(self, menu_id: str, submenu_id: str, dish_id: str, new_title: str, new_description: str,
+                    new_price: float, session: Session) -> Any:
         """Обновление существующего блюда"""
         pass
 

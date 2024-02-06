@@ -69,6 +69,7 @@ class DishCRUD(AbstractDish):
     @classmethod
     async def update_dish(
             cls,
+            menu_id: str,
             submenu_id: str,
             dish_id: str,
             new_title: str,

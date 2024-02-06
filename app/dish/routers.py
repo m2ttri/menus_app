@@ -76,6 +76,7 @@ async def create_dish(
     response_model=DishOut
 )
 async def update_dish(
+        menu_id,
         submenu_id,
         dish_id,
         dish: DishIn = Body(...),
@@ -84,6 +85,7 @@ async def update_dish(
     """Обновить блюдо"""
 
     result = await dish_service.update_dish(
+        menu_id,
         submenu_id,
         dish_id,
         dish,

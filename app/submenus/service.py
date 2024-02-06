@@ -21,12 +21,12 @@ class SubmenuService:
             session: AsyncSession
     ) -> Sequence[SubMenu] | None | Any:
 
-        submenus_list = await self.cache.get('submenus_list')
+        submenus_list = await self.cache.get(menu_id, prefix='submenu_list')
         if submenus_list is not None:
             return submenus_list
 
         submenus_list = await self.submenu.get_submenus(menu_id, session)
-        await self.cache.set('submenus_list', submenus_list, prefix='submenu')
+        await self.cache.set(menu_id, submenus_list, prefix='submenu_list')
         return submenus_list
 
     async def get_submenu(
