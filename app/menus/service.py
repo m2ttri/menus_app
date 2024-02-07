@@ -66,9 +66,5 @@ class MenuService:
         await self.cache.invalidate(menu_id, prefix='menu')
         return result
 
-        # result = await self.menu.delete_menu(menu_id, session)
-        # await self.cache.invalidate(menu_id, prefix='menu')
-        # return result
-
 
 menu_service = MenuService()

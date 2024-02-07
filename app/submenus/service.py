@@ -101,10 +101,5 @@ class SubmenuService:
         await self.cache.invalidate(menu_id, prefix='menu')
         return result
 
-        # result = await self.submenu.delete_submenu(menu_id, submenu_id, session)
-        # await self.cache.invalidate(submenu_id, parent_id=menu_id, prefix='submenu')
-        # await self.cache.invalidate(menu_id, prefix='menu')
-        # return result
-
 
 submenu_service = SubmenuService()
