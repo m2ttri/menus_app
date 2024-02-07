@@ -72,12 +72,13 @@ class AbstractDish(ABC):
         pass
 
     @abstractmethod
-    def get_dish(self, submenu_id: str, dish_id: str, session: Session) -> Any:
+    def get_dish(self, menu_id: str, submenu_id: str, dish_id: str, session: Session) -> Any:
         """Получение блюда по id"""
         pass
 
     @abstractmethod
-    def create_dish(self, submenu_id: str, title: str, description: str, price: float, session: Session) -> Any:
+    def create_dish(self, menu_id: str, submenu_id: str, title: str, description: str, price: float,
+                    session: Session) -> Any:
         """Создание нового блюда"""
         pass
 

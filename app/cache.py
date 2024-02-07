@@ -3,6 +3,7 @@ import uuid
 from typing import Any
 
 import aioredis
+from aioredis import RedisError
 
 
 class Cache:
@@ -10,13 +11,22 @@ class Cache:
         # Создание подключения к Redis
         self.rd = aioredis.Redis(host='redis', port=6379, db=0)
 
+    async def check_connection(self):
+        """Проверка подключения к Redis"""
+        try:
+            if await self.rd.ping():
+                return True
+        except RedisError:
+            raise Exception('Failed to connect to Redis')
+        return False
+
     async def get(self, key: str, parent_id: str | None = None, prefix: str = '') -> Any | None:
         """Возвращает значение если оно есть в кэше, если нет то возвращается None"""
 
         if parent_id:
-            key = f'{parent_id}:{key}'
+            key = f'{parent_id}:{key}'  # noqa: E231
         if prefix:
-            key = f'{prefix}:{key}'
+            key = f'{prefix}:{key}'  # noqa: E231
 
         cache_value: str | None = await self.rd.get(str(key))
         if cache_value:
@@ -28,9 +38,9 @@ class Cache:
         """Установка значения в кэш"""
 
         if parent_id:
-            key = f'{parent_id}:{key}'
+            key = f'{parent_id}:{key}'  # noqa: E231
         if prefix:
-            key = f'{prefix}:{key}'
+            key = f'{prefix}:{key}'  # noqa: E231
 
         if isinstance(value, dict):
             for k in value:
@@ -42,9 +52,9 @@ class Cache:
         """Удаление значения из кэша"""
 
         if parent_id:
-            key = f'{parent_id}:{key}'
+            key = f'{parent_id}:{key}'  # noqa: E231
         if prefix:
-            key = f'{prefix}:{key}'
+            key = f'{prefix}:{key}'  # noqa: E231
 
         await self.rd.delete(str(key))
 

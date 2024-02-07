@@ -115,3 +115,15 @@ class SubMenuCRUD(AbstractSubMenu):
             await session.delete(submenu)
         await session.commit()
         return submenu
+
+    @classmethod
+    async def get_all_dish_ids_for_submenu(
+            cls,
+            submenu_id: str,
+            session: AsyncSession
+    ) -> list[str]:
+        """Получение всех dish_id для данного submenu_id"""
+
+        query = select(Dish.id).filter(Dish.submenu_id == submenu_id)
+        result = await session.execute(query)
+        return [row[0] for row in result.fetchall()]

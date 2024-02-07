@@ -36,6 +36,7 @@ class DishService:
 
     async def get_dish(
             self,
+            menu_id: str,
             submenu_id: str,
             dish_id: str,
             session: AsyncSession
@@ -46,6 +47,7 @@ class DishService:
             return dish
 
         dish = await self.dish.get_dish(
+            menu_id,
             submenu_id,
             dish_id,
             session
@@ -55,12 +57,14 @@ class DishService:
 
     async def create_dish(
             self,
+            menu_id: str,
             submenu_id: str,
             dish: DishIn,
             session: AsyncSession
     ) -> Dish:
 
         new_dish = await self.dish.create_dish(
+            menu_id,
             submenu_id,
             dish.title,
             dish.description,
@@ -88,7 +92,8 @@ class DishService:
             dish.price,
             session
         )
-        await self.cache.invalidate(submenu_id, prefix='dish')
+        await self.cache.invalidate(dish_id, parent_id=submenu_id, prefix='dish')
+        await self.cache.invalidate(submenu_id, parent_id=menu_id, prefix='submenu')
         return result
 
     async def delete_dish(
@@ -100,7 +105,7 @@ class DishService:
     ) -> Sequence[Dish] | Dish:
 
         result = await self.dish.delete_dish(menu_id, submenu_id, dish_id, session)
-        await self.cache.invalidate(dish_id, parent_id=menu_id, prefix='dish')
+        await self.cache.invalidate(dish_id, parent_id=submenu_id, prefix='dish')
         await self.cache.invalidate(submenu_id, parent_id=menu_id, prefix='submenu')
         return result
 

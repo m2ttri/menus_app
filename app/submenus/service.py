@@ -89,10 +89,22 @@ class SubmenuService:
             session: AsyncSession
     ) -> Sequence[SubMenu] | SubMenu:
 
+        dish_ids = await self.submenu.get_all_dish_ids_for_submenu(submenu_id, session)
+        for dish_id in dish_ids:
+            await self.cache.invalidate(
+                dish_id,
+                parent_id=submenu_id,
+                prefix='dish'
+            )
         result = await self.submenu.delete_submenu(menu_id, submenu_id, session)
         await self.cache.invalidate(submenu_id, parent_id=menu_id, prefix='submenu')
         await self.cache.invalidate(menu_id, prefix='menu')
         return result
+
+        # result = await self.submenu.delete_submenu(menu_id, submenu_id, session)
+        # await self.cache.invalidate(submenu_id, parent_id=menu_id, prefix='submenu')
+        # await self.cache.invalidate(menu_id, prefix='menu')
+        # return result
 
 
 submenu_service = SubmenuService()

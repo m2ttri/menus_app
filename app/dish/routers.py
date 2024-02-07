@@ -37,13 +37,15 @@ async def get_dishes_list(
     responses={404: {'description': 'dish not found'}}
 )
 async def get_dish(
-        submenu_id,
-        dish_id,
+        menu_id: str,
+        submenu_id: str,
+        dish_id: str,
         session: AsyncSession = Depends(get_async_session)
 ) -> DishOut | None | Any:
     """Получить блюдо по id"""
 
     dish = await dish_service.get_dish(
+        menu_id,
         submenu_id,
         dish_id,
         session
@@ -57,6 +59,7 @@ async def get_dish(
     status_code=201
 )
 async def create_dish(
+        menu_id: str,
         submenu_id,
         dish: DishIn = Body(...),
         session: AsyncSession = Depends(get_async_session)
@@ -64,6 +67,7 @@ async def create_dish(
     """Создать блюдо"""
 
     new_dish = await dish_service.create_dish(
+        menu_id,
         submenu_id,
         dish,
         session

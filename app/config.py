@@ -17,16 +17,16 @@ class Settings(BaseSettings):
     @root_validator
     def get_database_url(cls, v):
         v['DATABASE_URL'] = (
-            f"postgresql+asyncpg://"
-            f"{v['DB_USER']}:{v['DB_PASS']}@"
-            f"{v['DB_HOST']}:{v['DB_PORT']}/"
-            f"{v['DB_NAME']}"
+            f"postgresql+asyncpg://"  # noqa: E231
+            f"{v['DB_USER']}:{v['DB_PASS']}@"  # noqa: E231
+            f"{v['DB_HOST']}:{v['DB_PORT']}/"  # noqa: E231
+            f"{v['DB_NAME']}"  # noqa: E231
         )
         v['TEST_DATABASE_URL'] = (
-            f"postgresql+asyncpg://"
-            f"{v['DB_USER_TEST']}:{v['DB_PASS_TEST']}@"
-            f"{v['DB_HOST_TEST']}:{v['DB_PORT_TEST']}/"
-            f"{v['DB_NAME_TEST']}"
+            f"postgresql+asyncpg://"  # noqa: E231
+            f"{v['DB_USER_TEST']}:{v['DB_PASS_TEST']}@"  # noqa: E231
+            f"{v['DB_HOST_TEST']}:{v['DB_PORT_TEST']}/"  # noqa: E231
+            f"{v['DB_NAME_TEST']}"  # noqa: E231
         )
         return v
 

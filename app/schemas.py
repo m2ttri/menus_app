@@ -3,6 +3,10 @@ import uuid
 from pydantic import BaseModel
 
 
+class HealthCheckResponse(BaseModel):
+    status: str
+
+
 class Menu(BaseModel):
     title: str
     description: str

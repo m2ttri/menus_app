@@ -6,6 +6,7 @@ from app.cache import cache
 from app.menus.crud import MenuCRUD
 from app.models import Menu
 from app.schemas import MenuIn
+from app.submenus.crud import SubMenuCRUD
 
 
 class MenuService:
@@ -53,9 +54,21 @@ class MenuService:
         return result
 
     async def delete_menu(self, menu_id: str, session: AsyncSession) -> type[Menu] | None:
+
+        submenu_ids = await self.menu.get_all_submenu_ids_for_menu(menu_id, session)
+        for submenu_id in submenu_ids:
+            dish_ids = await SubMenuCRUD.get_all_dish_ids_for_submenu(submenu_id, session)
+            for dish_id in dish_ids:
+                await self.cache.invalidate(dish_id, parent_id=submenu_id, prefix='dish')
+            await self.cache.invalidate(submenu_id, parent_id=menu_id, prefix='submenu')
+
         result = await self.menu.delete_menu(menu_id, session)
         await self.cache.invalidate(menu_id, prefix='menu')
         return result
+
+        # result = await self.menu.delete_menu(menu_id, session)
+        # await self.cache.invalidate(menu_id, prefix='menu')
+        # return result
 
 
 menu_service = MenuService()

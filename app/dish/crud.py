@@ -24,12 +24,13 @@ class DishCRUD(AbstractDish):
         result = await session.execute(query)
         dishes = result.scalars().all()
         for dish in dishes:
-            dish.price = f'{dish.price:.2f}'
+            dish.price = f'{dish.price:.2f}'  # noqa: E231
         return dishes
 
     @classmethod
     async def get_dish(
             cls,
+            menu_id: str,
             submenu_id: str,
             dish_id: str,
             session: AsyncSession
@@ -40,12 +41,13 @@ class DishCRUD(AbstractDish):
         dish = result.scalars().first()
         if dish is None:
             raise HTTPException(status_code=404, detail='dish not found')
-        dish.price = f'{dish.price:.2f}'
+        dish.price = f'{dish.price:.2f}'  # noqa: E231
         return dish
 
     @classmethod
     async def create_dish(
             cls,
+            menu_id: str,
             submenu_id: str,
             title: str,
             description: str,
@@ -63,7 +65,7 @@ class DishCRUD(AbstractDish):
         session.add(dish)
         await session.commit()
         await session.refresh(dish)
-        dish.price = f'{dish.price:.2f}'
+        dish.price = f'{dish.price:.2f}'  # noqa: E231
         return dish
 
     @classmethod
@@ -102,7 +104,7 @@ class DishCRUD(AbstractDish):
         result = await session.execute(query)
         dish = result.scalars().all()
         for dish in dish:
-            dish.price = f'{dish.price:.2f}'
+            dish.price = f'{dish.price:.2f}'  # noqa: E231
             await session.delete(dish)
         await session.commit()
         return dish
