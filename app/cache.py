@@ -8,7 +8,6 @@ from aioredis import RedisError
 
 class Cache:
     def __init__(self):
-        # Создание подключения к Redis
         self.rd = aioredis.Redis(host='redis', port=6379, db=0)
 
     async def check_connection(self):
@@ -20,8 +19,13 @@ class Cache:
             raise Exception('Failed to connect to Redis')
         return False
 
-    async def get(self, key: str, parent_id: str | None = None, prefix: str = '') -> Any | None:
-        """Возвращает значение если оно есть в кэше, если нет то возвращается None"""
+    async def get(
+            self,
+            key: str,
+            parent_id: str | None = None,
+            prefix: str = ''
+    ) -> Any | None:
+        """Возврат данных из кэша"""
 
         if parent_id:
             key = f'{parent_id}:{key}'  # noqa: E231
@@ -34,7 +38,14 @@ class Cache:
 
         return None
 
-    async def set(self, key: str, value: Any, parent_id: str | None = None, prefix: str = '', ex: int = 60) -> None:
+    async def set(
+            self,
+            key: str,
+            value: Any,
+            parent_id: str | None = None,
+            prefix: str = '',
+            ex: int = 60
+    ) -> None:
         """Установка значения в кэш"""
 
         if parent_id:
@@ -46,9 +57,18 @@ class Cache:
             for k in value:
                 if isinstance(value[k], uuid.UUID):
                     value[k] = str(value[k])
-            await self.rd.set(str(key), json.dumps(value), ex=ex)
+            await self.rd.set(
+                str(key),
+                json.dumps(value),
+                ex=ex
+            )
 
-    async def invalidate(self, key: str, parent_id: str | None = None, prefix: str = '') -> None:
+    async def invalidate(
+            self,
+            key: str,
+            parent_id: str | None = None,
+            prefix: str = ''
+    ) -> None:
         """Удаление значения из кэша"""
 
         if parent_id:

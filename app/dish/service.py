@@ -22,7 +22,11 @@ class DishService:
             session: AsyncSession
     ) -> Sequence[Dish] | None | Any:
 
-        dishes_list = await self.cache.get(submenu_id, parent_id=menu_id, prefix='dish')
+        dishes_list = await self.cache.get(
+            submenu_id,
+            parent_id=menu_id,
+            prefix='dish'
+        )
         if dishes_list is not None:
             return dishes_list
 
@@ -31,7 +35,12 @@ class DishService:
             submenu_id,
             session
         )
-        await self.cache.set('dishes_list', dishes_list, parent_id=menu_id, prefix='dish')
+        await self.cache.set(
+            'dishes_list',
+            dishes_list,
+            parent_id=menu_id,
+            prefix='dish'
+        )
         return dishes_list
 
     async def get_dish(
@@ -42,7 +51,11 @@ class DishService:
             session: AsyncSession
     ) -> dict[str, str | int] | None | Any:
 
-        dish = await self.cache.get(dish_id, parent_id=submenu_id, prefix='dish')
+        dish = await self.cache.get(
+            dish_id,
+            parent_id=submenu_id,
+            prefix='dish'
+        )
         if dish:
             return dish
 
@@ -52,7 +65,12 @@ class DishService:
             dish_id,
             session
         )
-        await self.cache.set(dish_id, dish, parent_id=submenu_id, prefix='dish')
+        await self.cache.set(
+            dish_id,
+            dish,
+            parent_id=submenu_id,
+            prefix='dish'
+        )
         return dish
 
     async def create_dish(
@@ -71,7 +89,21 @@ class DishService:
             dish.price,
             session
         )
-        await self.cache.set(new_dish.id, new_dish, parent_id=submenu_id, prefix='dish')
+        await self.cache.set(
+            new_dish.id,
+            new_dish,
+            parent_id=submenu_id,
+            prefix='dish'
+        )
+        await self.cache.invalidate(
+            submenu_id,
+            parent_id=menu_id,
+            prefix='submenu'
+        )
+        await self.cache.invalidate(
+            menu_id,
+            prefix='menu'
+        )
         return new_dish
 
     async def update_dish(
@@ -92,8 +124,16 @@ class DishService:
             dish.price,
             session
         )
-        await self.cache.invalidate(dish_id, parent_id=submenu_id, prefix='dish')
-        await self.cache.invalidate(submenu_id, parent_id=menu_id, prefix='submenu')
+        await self.cache.invalidate(
+            dish_id,
+            parent_id=submenu_id,
+            prefix='dish'
+        )
+        await self.cache.invalidate(
+            submenu_id,
+            parent_id=menu_id,
+            prefix='submenu'
+        )
         return result
 
     async def delete_dish(
@@ -104,9 +144,22 @@ class DishService:
             session: AsyncSession
     ) -> Sequence[Dish] | Dish:
 
-        result = await self.dish.delete_dish(menu_id, submenu_id, dish_id, session)
-        await self.cache.invalidate(dish_id, parent_id=submenu_id, prefix='dish')
-        await self.cache.invalidate(submenu_id, parent_id=menu_id, prefix='submenu')
+        result = await self.dish.delete_dish(
+            menu_id,
+            submenu_id,
+            dish_id,
+            session
+        )
+        await self.cache.invalidate(
+            dish_id,
+            parent_id=submenu_id,
+            prefix='dish'
+        )
+        await self.cache.invalidate(
+            submenu_id,
+            parent_id=menu_id,
+            prefix='submenu'
+        )
         return result
 
 
