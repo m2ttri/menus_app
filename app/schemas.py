@@ -17,6 +17,10 @@ class MenuIn(BaseModel):
     description: str
 
 
+class MenuListOut(MenuIn):
+    id: uuid.UUID
+
+
 class MenuOut(MenuIn):
     id: uuid.UUID
     submenus_count: int | None = 0
@@ -31,6 +35,10 @@ class Submenu(BaseModel):
 class SubmenuIn(BaseModel):
     title: str
     description: str
+
+
+class SubmenuListOut(SubmenuIn):
+    id: uuid.UUID
 
 
 class SubmenuOut(SubmenuIn):
@@ -52,3 +60,19 @@ class DishIn(BaseModel):
 
 class DishOut(DishIn):
     id: uuid.UUID
+
+
+class DishOutExtra(BaseModel):
+    title: str
+    description: str
+    price: str
+
+
+class SubmenuOutExtra(BaseModel):
+    title: str
+    description: str
+    dishes: list[DishOutExtra]
+
+
+class MenuAllOut(MenuIn):
+    submenu: list[SubmenuOutExtra]

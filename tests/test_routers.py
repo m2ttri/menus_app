@@ -22,6 +22,26 @@ async def test_create_menu(ac: AsyncClient) -> None:
     assert data['description'] == 'My menu description 1'
 
 
+async def test_get_menus_with_submenus_and_dishes(ac: AsyncClient) -> None:
+    """Проверка получения списка всех меню со всеми связанными подменю и блюдами"""
+
+    dish = await get_dish_instance()
+    if dish is None:
+        await test_create_dish(ac)
+
+    response = await ac.get(reverse('get_menus_with_submenus_and_dishes'))
+    data = response.json()
+    assert response.status_code == 200
+    assert isinstance(data, list)
+    assert data[0]['title'] == 'My menu 1'
+    assert data[0]['description'] == 'My menu description 1'
+    assert data[0]['submenu'][0]['title'] == 'My submenu 1'
+    assert data[0]['submenu'][0]['description'] == 'My submenu description 1'
+    assert data[0]['submenu'][0]['dishes'][0]['title'] == 'My dish 1'
+    assert data[0]['submenu'][0]['dishes'][0]['description'] == 'My dish description 1'
+    assert data[0]['submenu'][0]['dishes'][0]['price'] == '12.50'
+
+
 async def test_get_menus_list(ac: AsyncClient) -> None:
     """Проверка получения списка меню"""
 

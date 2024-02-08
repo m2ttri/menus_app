@@ -3,16 +3,21 @@ from typing import Sequence
 from fastapi import HTTPException
 from sqlalchemy import distinct, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 from app.models import Dish, Menu, SubMenu
 from app.repository import AbstractMenu
+from app.schemas import MenuAllOut
 
 
 class MenuCRUD(AbstractMenu):
     """Класс предоставляет методы для выполнения CRUD операций над меню"""
 
     @classmethod
-    async def get_menus_list(cls, session: AsyncSession) -> Sequence[Menu]:
+    async def get_menus_list(
+            cls,
+            session: AsyncSession
+    ) -> Sequence[Menu]:
         """Получение всех меню"""
 
         query = select(Menu)
@@ -115,3 +120,46 @@ class MenuCRUD(AbstractMenu):
         query = select(SubMenu.id).filter(SubMenu.menu_id == menu_id)
         result = await session.execute(query)
         return [row[0] for row in result.fetchall()]
+
+    @classmethod
+    async def get_menus_with_submenus_and_dishes(
+            cls,
+            session: AsyncSession
+    ) -> list[MenuAllOut]:
+        """Получение всех меню со всеми связанными подменю и блюдами"""
+
+        query = (
+            select(Menu).options(
+                joinedload(Menu.submenus).joinedload(SubMenu.dishes)
+            )
+        )
+        result = await session.execute(query)
+
+        menus_list = result.scalars().unique().all()
+        menus_out = []
+
+        for menu in menus_list:
+            submenus = []
+            for submenu in menu.submenus:
+                dishes = [
+                    {
+                        'title': dish.title,
+                        'description': dish.description,
+                        'price': str(dish.price)
+                    } for dish in submenu.dishes
+                ]
+                submenus.append(
+                    {
+                        'title': submenu.title,
+                        'description': submenu.description,
+                        'dishes': dishes
+                    }
+                )
+            menu_out = MenuAllOut(
+                title=menu.title,
+                description=menu.description,
+                submenu=submenus
+            )
+            menus_out.append(menu_out)
+
+        return menus_out
