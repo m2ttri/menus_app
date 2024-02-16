@@ -1,5 +1,6 @@
 from typing import Any, Sequence
 
+from fastapi import BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.cache import cache
@@ -64,7 +65,8 @@ class MenuService:
     async def create_menu(
             self,
             menu: MenuIn,
-            session: AsyncSession
+            session: AsyncSession,
+            background_tasks: BackgroundTasks
     ) -> Menu:
         new_menu = await self.menu.create_menu(
             menu.title,
@@ -76,13 +78,28 @@ class MenuService:
             new_menu,
             prefix='menu'
         )
+        background_tasks.add_task(
+            cache.invalidate,
+            'menus_out',
+            None,
+            prefix='menu'
+        )
+        background_tasks.add_task(
+            cache.set,
+            'dirty',
+            False,
+            parent_id=new_menu.id,
+            prefix='menu',
+            ex=60
+        )
         return new_menu
 
     async def update_menu(
             self,
             menu_id: str,
             menu: MenuIn,
-            session: AsyncSession
+            session: AsyncSession,
+            background_tasks: BackgroundTasks
     ) -> Menu:
         result = await self.menu.update_menu(
             menu_id,
@@ -90,16 +107,27 @@ class MenuService:
             menu.description,
             session
         )
-        await self.cache.invalidate(
-            menu_id,
+        background_tasks.add_task(
+            cache.invalidate,
+            'menus_out',
+            None,
             prefix='menu'
+        )
+        background_tasks.add_task(
+            cache.set,
+            'dirty',
+            False,
+            parent_id=menu_id,
+            prefix='menu',
+            ex=60
         )
         return result
 
     async def delete_menu(
             self,
             menu_id: str,
-            session: AsyncSession
+            session: AsyncSession,
+            background_tasks: BackgroundTasks
     ) -> type[Menu] | None:
 
         submenu_ids = await self.menu.get_all_submenu_ids_for_menu(
@@ -112,24 +140,51 @@ class MenuService:
                 session
             )
             for dish_id in dish_ids:
-                await self.cache.invalidate(
+                background_tasks.add_task(
+                    cache.invalidate,
                     dish_id,
                     parent_id=submenu_id,
                     prefix='dish'
                 )
-            await self.cache.invalidate(
+                background_tasks.add_task(
+                    cache.set,
+                    'dirty',
+                    True,
+                    parent_id=dish_id,
+                    prefix='dish',
+                    ex=60
+                )
+            background_tasks.add_task(
+                cache.invalidate,
                 submenu_id,
                 parent_id=menu_id,
                 prefix='submenu'
             )
-
+            background_tasks.add_task(
+                cache.set,
+                'dirty',
+                True,
+                parent_id=submenu_id,
+                prefix='submenu',
+                ex=60
+            )
         result = await self.menu.delete_menu(
             menu_id,
             session
         )
-        await self.cache.invalidate(
+        background_tasks.add_task(
+            cache.invalidate,
             menu_id,
+            None,
             prefix='menu'
+        )
+        background_tasks.add_task(
+            cache.set,
+            'dirty',
+            True,
+            parent_id=menu_id,
+            prefix='menu',
+            ex=60
         )
         return result
 

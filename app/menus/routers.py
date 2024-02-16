@@ -3,7 +3,6 @@ from typing import Any
 from fastapi import APIRouter, BackgroundTasks, Body, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.cache import cache
 from app.database import get_async_session
 from app.menus.service import menu_service
 from app.schemas import Menu, MenuAllOut, MenuIn, MenuListOut, MenuOut
@@ -36,13 +35,8 @@ async def create_menu(
 
     new_menu = await menu_service.create_menu(
         menu,
-        session
-    )
-    background_tasks.add_task(
-        cache.invalidate,
-        'menus_out',
-        None,
-        prefix='menu'
+        session,
+        background_tasks
     )
     return new_menu
 
@@ -89,13 +83,8 @@ async def update_menu(
     result = await menu_service.update_menu(
         menu_id,
         menu,
-        session
-    )
-    background_tasks.add_task(
-        cache.invalidate,
-        'menus_out',
-        None,
-        prefix='menu'
+        session,
+        background_tasks
     )
     return result
 
@@ -110,12 +99,7 @@ async def delete_menu(
 
     result = await menu_service.delete_menu(
         menu_id,
-        session
-    )
-    background_tasks.add_task(
-        cache.invalidate,
-        'menus_out',
-        None,
-        prefix='menu'
+        session,
+        background_tasks
     )
     return result

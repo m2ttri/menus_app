@@ -12,7 +12,8 @@ services:
     depends_on:
       - db
       - redis
-      - test_db
+      - rabbitmq
+      - celery
     env_file:
       - .env
     healthcheck:
@@ -41,6 +42,22 @@ services:
       retries: 3
       start_period: 45s
 
+  rabbitmq:
+    image: 'rabbitmq:3-management'
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  celery:
+    build: .
+    command: celery -A app.celery worker -B -l info
+    restart: always
+    volumes:
+      - .:/code
+    depends_on:
+      - rabbitmq
+
   test:
     build: .
     command: bash -c 'pytest -v && exit'
@@ -48,7 +65,6 @@ services:
       - .:/code
     depends_on:
       - web
-      - db
       - test_db
     env_file:
       - .env

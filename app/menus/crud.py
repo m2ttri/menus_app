@@ -143,6 +143,7 @@ class MenuCRUD(AbstractMenu):
             for submenu in menu.submenus:
                 dishes = [
                     {
+                        'id': dish.id,
                         'title': dish.title,
                         'description': dish.description,
                         'price': str(dish.price)
@@ -150,12 +151,14 @@ class MenuCRUD(AbstractMenu):
                 ]
                 submenus.append(
                     {
+                        'id': submenu.id,
                         'title': submenu.title,
                         'description': submenu.description,
                         'dishes': dishes
                     }
                 )
             menu_out = MenuAllOut(
+                id=menu.id,
                 title=menu.title,
                 description=menu.description,
                 submenu=submenus

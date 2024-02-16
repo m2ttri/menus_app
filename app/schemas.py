@@ -63,16 +63,19 @@ class DishOut(DishIn):
 
 
 class DishOutExtra(BaseModel):
+    id: uuid.UUID
     title: str
     description: str
     price: str
 
 
 class SubmenuOutExtra(BaseModel):
+    id: uuid.UUID
     title: str
     description: str
     dishes: list[DishOutExtra]
 
 
 class MenuAllOut(MenuIn):
+    id: uuid.UUID
     submenu: list[SubmenuOutExtra]
