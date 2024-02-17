@@ -1,5 +1,6 @@
 from typing import Any, Sequence
 
+from fastapi import BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.cache import cache
@@ -78,7 +79,8 @@ class DishService:
             menu_id: str,
             submenu_id: str,
             dish: DishIn,
-            session: AsyncSession
+            session: AsyncSession,
+            background_tasks: BackgroundTasks
     ) -> Dish:
 
         new_dish = await self.dish.create_dish(
@@ -95,14 +97,19 @@ class DishService:
             parent_id=submenu_id,
             prefix='dish'
         )
-        await self.cache.invalidate(
+        background_tasks.add_task(
+            cache.invalidate,
             submenu_id,
             parent_id=menu_id,
             prefix='submenu'
         )
-        await self.cache.invalidate(
-            menu_id,
-            prefix='menu'
+        background_tasks.add_task(
+            cache.set,
+            'dirty',
+            True,
+            parent_id=submenu_id,
+            prefix='submenu',
+            ex=60
         )
         return new_dish
 
@@ -112,7 +119,8 @@ class DishService:
             submenu_id: str,
             dish_id: str,
             dish: DishIn,
-            session: AsyncSession
+            session: AsyncSession,
+            background_tasks: BackgroundTasks
     ) -> Dish:
 
         result = await self.dish.update_dish(
@@ -124,15 +132,19 @@ class DishService:
             dish.price,
             session
         )
-        await self.cache.invalidate(
+        background_tasks.add_task(
+            cache.invalidate,
             dish_id,
             parent_id=submenu_id,
             prefix='dish'
         )
-        await self.cache.invalidate(
-            submenu_id,
-            parent_id=menu_id,
-            prefix='submenu'
+        background_tasks.add_task(
+            cache.set,
+            'dirty',
+            True,
+            parent_id=dish_id,
+            prefix='dish',
+            ex=60
         )
         return result
 
@@ -141,7 +153,8 @@ class DishService:
             menu_id: str,
             submenu_id: str,
             dish_id: str,
-            session: AsyncSession
+            session: AsyncSession,
+            background_tasks: BackgroundTasks
     ) -> Sequence[Dish] | Dish:
 
         result = await self.dish.delete_dish(
@@ -150,15 +163,19 @@ class DishService:
             dish_id,
             session
         )
-        await self.cache.invalidate(
+        background_tasks.add_task(
+            cache.invalidate,
             dish_id,
             parent_id=submenu_id,
             prefix='dish'
         )
-        await self.cache.invalidate(
-            submenu_id,
-            parent_id=menu_id,
-            prefix='submenu'
+        background_tasks.add_task(
+            cache.set,
+            'dirty',
+            True,
+            parent_id=dish_id,
+            prefix='dish',
+            ex=60
         )
         return result
 

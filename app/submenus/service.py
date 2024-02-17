@@ -1,5 +1,6 @@
 from typing import Any, Sequence
 
+from fastapi import BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.cache import cache
@@ -71,7 +72,8 @@ class SubmenuService:
             self,
             menu_id: str,
             submenu: SubmenuIn,
-            session: AsyncSession
+            session: AsyncSession,
+            background_tasks: BackgroundTasks
     ) -> SubMenu:
 
         new_submenu = await self.submenu.add_submenu(
@@ -86,9 +88,19 @@ class SubmenuService:
             parent_id=menu_id,
             prefix='submenu'
         )
-        await self.cache.invalidate(
-            menu_id,
-            prefix='menu'
+        background_tasks.add_task(
+            cache.invalidate,
+            'submenus_out',
+            None,
+            prefix='submenu'
+        )
+        background_tasks.add_task(
+            cache.set,
+            'dirty',
+            True,
+            parent_id=new_submenu.id,
+            prefix='submenu',
+            ex=60
         )
         return new_submenu
 
@@ -97,7 +109,8 @@ class SubmenuService:
             menu_id: str,
             submenu_id: str,
             submenu: SubmenuIn,
-            session: AsyncSession
+            session: AsyncSession,
+            background_tasks: BackgroundTasks
     ) -> SubMenu:
 
         result = await self.submenu.update_submenu(
@@ -107,10 +120,19 @@ class SubmenuService:
             submenu.description,
             session
         )
-        await self.cache.invalidate(
+        background_tasks.add_task(
+            cache.invalidate,
             submenu_id,
             parent_id=menu_id,
             prefix='submenu'
+        )
+        background_tasks.add_task(
+            cache.set,
+            'dirty',
+            True,
+            parent_id=submenu_id,
+            prefix='submenu',
+            ex=60
         )
         return result
 
@@ -118,7 +140,8 @@ class SubmenuService:
             self,
             menu_id: str,
             submenu_id: str,
-            session: AsyncSession
+            session: AsyncSession,
+            background_tasks: BackgroundTasks
     ) -> Sequence[SubMenu] | SubMenu:
 
         dish_ids = await self.submenu.get_all_dish_ids_for_submenu(
@@ -126,24 +149,38 @@ class SubmenuService:
             session
         )
         for dish_id in dish_ids:
-            await self.cache.invalidate(
+            background_tasks.add_task(
+                cache.invalidate,
                 dish_id,
                 parent_id=submenu_id,
                 prefix='dish'
+            )
+            background_tasks.add_task(
+                cache.set,
+                'dirty',
+                True,
+                parent_id=dish_id,
+                prefix='dish',
+                ex=60
             )
         result = await self.submenu.delete_submenu(
             menu_id,
             submenu_id,
             session
         )
-        await self.cache.invalidate(
+        background_tasks.add_task(
+            cache.invalidate,
             submenu_id,
             parent_id=menu_id,
             prefix='submenu'
         )
-        await self.cache.invalidate(
-            menu_id,
-            prefix='menu'
+        background_tasks.add_task(
+            cache.set,
+            'dirty',
+            True,
+            parent_id=submenu_id,
+            prefix='submenu',
+            ex=60
         )
         return result
 

@@ -3,7 +3,6 @@ from typing import Any, Sequence
 from fastapi import APIRouter, BackgroundTasks, Body, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.cache import cache
 from app.database import get_async_session
 from app.dish.service import dish_service
 from app.schemas import Dish, DishIn, DishOut
@@ -72,13 +71,8 @@ async def create_dish(
         menu_id,
         submenu_id,
         dish,
-        session
-    )
-    background_tasks.add_task(
-        cache.invalidate,
-        'dishes_out',
-        None,
-        prefix='dish'
+        session,
+        background_tasks
     )
     return new_dish
 
@@ -102,13 +96,8 @@ async def update_dish(
         submenu_id,
         dish_id,
         dish,
-        session
-    )
-    background_tasks.add_task(
-        cache.invalidate,
-        'dishes_out',
-        None,
-        prefix='dish'
+        session,
+        background_tasks
     )
     return result
 
@@ -130,12 +119,7 @@ async def delete_dish(
         menu_id,
         submenu_id,
         dish_id,
-        session
-    )
-    background_tasks.add_task(
-        cache.invalidate,
-        'dishes_out',
-        None,
-        prefix='dish'
+        session,
+        background_tasks
     )
     return result

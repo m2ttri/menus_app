@@ -36,10 +36,10 @@ def update_database():
         print(row)
 
 
-@celery.on_after_configure.connect
-def setup_periodic_tasks(sender, **kwargs):
-    sender.add_periodic_task(
-        15.0,
-        update_database.s(),
-        name='Run every 15 seconds'
-    )
+# @celery.on_after_configure.connect
+# def setup_periodic_tasks(sender, **kwargs):
+#     sender.add_periodic_task(
+#         15.0,
+#         update_database.s(),
+#         name='Run every 15 seconds'
+#     )
